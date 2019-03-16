@@ -28,19 +28,14 @@ class Package {
 
 public class Main {
   public static void main(String[] args) throws IOException {
-      //TODO: make sure to delete the following args lines
-      String[] par = {"C:\\Users\\David\\Documents\\University\\Year 3\\CO663\\dependency-solver-2019-DavidFCHW\\tests\\example-0\\repository.json",
-              "C:\\Users\\David\\Documents\\University\\Year 3\\CO663\\dependency-solver-2019-DavidFCHW\\tests\\example-0\\initial.json",
-              "C:\\Users\\David\\Documents\\University\\Year 3\\CO663\\dependency-solver-2019-DavidFCHW\\tests\\example-0\\constraints.json"};
-
       TypeReference<List<Package>> repoType = new TypeReference<List<Package>>() {};
-//      List<Package> repo = JSON.parseObject(readFile(args[0]), repoType);
-      List<Package> repo = JSON.parseObject(readFile(par[0]), repoType);
+      List<Package> repo = JSON.parseObject(readFile(args[0]), repoType);
+//      List<Package> repo = JSON.parseObject(readFile(par[0]), repoType);
       TypeReference<List<String>> strListType = new TypeReference<List<String>>() {};
-//      List<String> initial = JSON.parseObject(readFile(args[1]), strListType);
-      List<String> initial = JSON.parseObject(readFile(par[1]), strListType);
-//      List<String> constraints = JSON.parseObject(readFile(args[2]), strListType);
-      List<String> constraints = JSON.parseObject(readFile(par[2]), strListType);
+      List<String> initial = JSON.parseObject(readFile(args[1]), strListType);
+//      List<String> initial = JSON.parseObject(readFile(par[1]), strListType);
+      List<String> constraints = JSON.parseObject(readFile(args[2]), strListType);
+//      List<String> constraints = JSON.parseObject(readFile(par[2]), strListType);
 
       // CHANGE CODE BELOW:
       // using repo, initial and constraints, compute a solution and print the answer
