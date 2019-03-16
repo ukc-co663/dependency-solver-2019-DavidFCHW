@@ -5,10 +5,7 @@ import com.alibaba.fastjson.JSON;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.HashSet;
+import java.util.*;
 
 class Package {
     private String name;
@@ -57,10 +54,17 @@ public class Main {
               System.out.printf("\n");
           }
       }
-      var repoSize = repo.size();
-      System.out.println("packages: " + repoSize);
-      System.out.println("Total possible states: " + Math.pow(2, repoSize));
+
       makeGraph(repo);
+  }
+
+  //check if package must be installed.
+  public static boolean mustNotInstall(String pack){
+      if(pack.charAt(0) == '-'){
+          return true;
+      } else{
+          return false;
+      }
   }
 
   static String readFile(String filename) throws IOException {
@@ -72,13 +76,9 @@ public class Main {
 
 
   public static void makeGraph(List<Package> repo){
-      long numberOfStates = Math.round(Math.pow(2, repo.size()));
-      //use arrays to represent states.
-      //TODO: a state is a "subset" of the repo. Think of sliding windows.
-      //ArrayList<List<Package>> states = new ArrayList<>();
-//      ArrayList<Package[]> states = new ArrayList<>();
       ArrayList<List<Package>> states = new ArrayList<>();
       //make the assumption that you always have an empty state, meaning that states.size() == numberofStates-1.
+
       for(int start = 0; start <= repo.size(); start++) {
           int end = 1;
           while (end <= repo.size()) {
@@ -97,25 +97,69 @@ public class Main {
       }
 
 
-      System.out.println("Number of states: " + states.size());
   }
 
-  //TODO: Apply the main search algorithm.
-  /**
-   * The main search algorithm dfs.
-   */
-  public static void search(){
+  public static void search(List<Package> x, List<Package> repo){
+      HashSet<List<Package>> seen = new HashSet<>();
+      if(!valid(x)){
+          return;
+      }
+      if(seen.contains(x)){
+          return;
+      } else{
+          seen.add(x);
+      }
+      if(/*x is final*/){
+          //solution found!
+      }
+
+      Package tmp = repo.stream()
+              .filter(p -> !x.contains(p) && !hasConflicts(p))
+              .findFirst()
+              .get();
+      if(hasDepends(tmp)){
+          tmp.getDepends().stream().filter(deps -> deps.size() > 1).forEach(dis -> dis.stream().map(p -> getPackage(p, repo)));
+      }
 
   }
 
-  //TODO: Check if the state is valid or not.
-  public static boolean isValid(){
+  public static Package getPackage(String pack, List<Package> repo){
+      if(pack.charAt(0) == '+' || pack.charAt(0) == '-'){
+          pack = pack.substring(1);
+      }
+      String[] packBits = pack.split("=");
+      Package res = repo.stream()
+              .filter(p -> p.getName().equals(packBits[0]) && p.getVersion().equals(packBits[2]))
+              .findFirst()
+              .get();
+      return res;
+  }
+
+  public static boolean hasConflicts(Package p){
+      if(p.getConflicts().size() != 0){
+          return true;
+      } else{
+          return false;
+      }
+  }
+
+  public static boolean hasDepends(Package p){
+      if(p.getDepends().size() != 0){
+          return true;
+      } else{
+          return false;
+      }
+  }
+  public static boolean valid(List<Package> x){
 
       return true;
   }
 
+  public static boolean isFinal(List<Package> x){
 
-  //FIXME: Check if how my algorithm actually works and sort it out. Currently it's missing two states, found out why and FAST!
+      return true;
+  }
+
   public static List<Package> subset(List<Package> set, int start, int end){
       //end is exclusive.
       assert end < set.size() && start < end && start >= 0 : "start and end must be within the length of the array argument";
@@ -127,40 +171,26 @@ public class Main {
       return result;
   }
 
-  /*public static List<Package[]> subset(List<Package> set, int elementSize){
-      assert elementSize <= set.size() && elementSize >= 0 : "Element size must be a positive integer less than or equal to the set size";
-      List<Package> states = new ArrayList<>();
-
-      for(int index = 0; index < set.size(); index++){
-          Package current = set.get(index);
-          Package[] state = new Package[elementSize];
-          state[index] = current;
-
+  //FIXME: This doesn't work, try different approach.
+  public static void subset(List<Package> set, Package[] sub, int m, int index){
+      if(sub[m-1] != null){
+          List<Package[]> list = new ArrayList<Package[]>();
+          list.add(sub);
+          for(Package[] subset : list){
+              for(Package e : subset){
+                  System.out.print(e.getName() + "=" + e.getVersion() + " ");
+              }
+              System.out.println();
+          }
+      } else {
+          int n = set.size();
+          int k = (n - m) + 1;
+          for (int i = index; i < k; i++) {
+              sub[index] = set.get(index);
+              subset(set, sub, m - 1, index++);
+          }
       }
-
-      return null;
-  }*/
+  }
 
 
-
-
-    /**
-     * The following code is an adapted version of GeekforGeeks':
-     * https://www.geeksforgeeks.org/print-all-possible-combinations-of-r-elements-in-a-given-array-of-size-n/ method 1.
-     */
-    public static List<Package[]> subsets(List<Package> set, Package[] tmpCombo, int setStart, int setEnd, int tmpIndex, int comboSize){
-        List<Package[]> subset = new ArrayList<>();
-        //If the current combination is completed then return it.
-        if(tmpIndex == comboSize){
-            subset.add(tmpCombo);
-            return subset;
-        } else {
-            for (int i = setStart; i <= setEnd && setEnd - i + 1 >= comboSize - tmpIndex; i++) {
-                tmpCombo[tmpIndex] = set.get(i);
-                //recur here...
-                subsets(set, tmpCombo, setStart + 1, setEnd, tmpIndex, comboSize);
-            }
-        }
-        return subset;
-    }
 }
